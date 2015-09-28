@@ -1,0 +1,28 @@
+{
+  "name": "ChatUser",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "nickName": {
+      "type": "string",
+      "required": true
+    },
+    "appId": {
+      "type": "string",
+      "required": true
+    }
+  },
+  "validations": [],
+  "relations": {
+    "rooms": {
+      "type": "hasMany",
+      "model": "Room",
+      "foreignKey": "roomId"
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

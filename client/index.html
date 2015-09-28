@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html ng-app="domo">
+<head lang="en">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta charset="UTF-8">
+    <title></title>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/angular/angular.min.js"></script>
+    <script src="/js/chat.js"></script>
+</head>
+<body ng-controller="domoCtrl">
+<div>
+    <form>
+        昵称：<input type="text" id="nickName" ng-model="nickName">
+        <br>
+        用户ID：<input type="text" ng-model="appId">
+        <br>
+        <input type="button" ng-click="login()" value="登陆">
+    </form>
+</div>
+
+<div style="margin: 0 auto">
+    <div style="height: 250px;border: 2px solid #ddd;background-color:#fff;overflow: auto;">
+        <div style="height: 250px;border-right:2px solid #ddd;width: 20%;float: left">
+            <ul>
+                <li ng-repeat="user in others" ng-click="changeUser()">
+                    {{user.nickName}}
+                </li>
+            </ul>
+        </div>
+        <div style="height: 250px;width: 75%;float: right">
+            <div style="height: 10px;width: 100%;text-align: center">
+                <h5 style="margin: 3px;border-bottom: 1px solid #ddd" ng-bind="linkman.nickName"></h5>
+            </div>
+            <div style="height: 240px;width: 100%;text-align: right">
+                <ul>
+                    <li ng-repeat="msg in msgs">
+                        {{msg}}
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div style="height: 100px;background-color: #fff;padding: 10px;">
+        <input type="text" ng-model="msg">
+        <input type="button" id="send" ng-click="sendMsg()" value="send">
+    </div>
+</div>
+</body>
+</html>

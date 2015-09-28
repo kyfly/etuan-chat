@@ -1,0 +1,32 @@
+{
+  "name": "Room",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "toUser": {
+      "type": "string",
+      "required": true
+    },
+    "fromUser": {
+      "type": "string",
+      "required": true
+    },
+    "created": {
+      "type": "date",
+      "required": true
+    }
+  },
+  "validations": [],
+  "relations": {
+    "chatUser": {
+      "type": "belongsTo",
+      "model": "chatUser",
+      "foreignKey": ""
+    }
+  },
+  "acls": [],
+  "methods": {}
+}
