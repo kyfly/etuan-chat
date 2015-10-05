@@ -13,15 +13,17 @@
     "appId": {
       "type": "string",
       "required": true
+    },
+    "created": {
+      "type": "date"
+    },
+    "lastOT": {
+      "type": "date"
     }
   },
   "validations": [],
   "relations": {
-    "rooms": {
-      "type": "hasMany",
-      "model": "Room",
-      "foreignKey": "roomId"
-    }
+
   },
   "acls": [],
   "methods": {}

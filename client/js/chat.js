@@ -1,28 +1,3 @@
-//var socket = io(window.location.host + '/chat',
-//    {query: "accessToken=1K4HLSt2fWDTf4shcCR1aBZVb3ObupPE9hMoEu1eIfszcc4nHKeWwmEEGPlAw75k&id="
-//    + window.location.hash.substr(1)});
-//socket.on('error', function (err) {
-//    console.log(err);
-//});
-//socket.once('initSeckill', function (info, result, status) {
-//    console.log(info, result, status);
-//});
-//socket.on('killFail', function(err){
-//    console.log(err);
-//    //err是一个字符串
-//    //认证信息（id）错误  'verifyId wrong'
-//    //已经抢过票了   'already gotten'
-//    //还没有开始      'not started'
-//    //没有余票了   'no enough'
-//    //写入数据库出错   'database error'
-//});
-//socket.on('killSuccess', function() {
-//    console.log('Seckill successfully!');
-//});
-//socket.on('addResult', function(verifyId){
-//    console.log(verifyId);
-//});
-
 var app = angular.module('domo',[]);
 app.controller('domoCtrl', function ($scope) {
     chat = new EtuanChat();
@@ -82,6 +57,9 @@ function EtuanChat () {
     this.socket.once('cookieId', function (cookie) {
         this.cookie = cookie;
     });
+    this.socket.emit('sign_up', {appid:"1",nickName:"123"}, function (data) {
+        console.log(data);
+    });
     this.socket.on('broadcast', function (status, friends, others) {
         var data = {
             status: status,
@@ -94,7 +72,7 @@ function EtuanChat () {
     this.socket.on('private', function (data) {
         that.__fire__('new_msg_res', data);
     });
-    //this.socket.emit('broadcast', 'sm');
+    this.socket.emit('broadcast', 'sm');
 }
 
 /**
