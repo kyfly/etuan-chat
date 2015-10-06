@@ -4,15 +4,13 @@ module.exports.etuanChat = EtuanChat;
 module.exports.upUsers = upUsers;
 module.exports.otherUsers = findOthers;
 function EtuanChat(app, server) {
-    var IM = new EtuanIM(app.models.ChatUser, app.models.Room);
+    var IM = new EtuanIM(app.models.ChatUser, app.models.ChatRoom);
     io = io(server);
     io.of('/chat').on('connection', function (socket) {
-        IM.addUser(socket.id, socket) === 1
-            ? socket.emit('init', {status:200, user: IM.onlineUsers(socket.id)})
-            : socket.emit('init', {status:400, msg: "链接失败"});
+
 
         socket.on('sign_up', function (user, cb) {
-            IM.upUser(socket.id, user.appid, user.nickName, function (err, oldUser) {
+            IM.addUser(socket, socket.id, user.appid, user.nickName, function (err, oldUser) {
                 if (err) {
                     cb({status:400, msg: "加入聊天系统失败"});
                 } else if (oldUser){
@@ -36,21 +34,21 @@ function EtuanChat(app, server) {
         });
 
         socket.on('disconnect', function () {
-            var usr = IM.deleteUser(socket.id);
-            io.sockets.emit('user_out', oldUser);
+            var user = IM.deleteUser(socket.id);
+            io.sockets.emit('user_out', user);
         });
     });
 }
 /**
  * 内存中用户信息数据结构users
  * [{
+ *  id:"用户ID"
  *  socketId: "用户链接时的socket，唯一"，
  *  appid："用户应用ID",
  *  nickName:"用户应用昵称",
  *  created："建立链接时间"，
  *  socket:"用户socket链接对象"
  * }]
- * @param users
  * @param userModel 用户信息数据库对象
  * @param roomModel 聊天信息数据库对象
  * @constructor
@@ -66,20 +64,21 @@ function EtuanIM (userModel, roomModel) {
  * @param socket 链接时socket对象
  * @returns {number} 状态，成果 1，失败 0
  */
-EtuanIM.prototype.addUser = function (socketId, socket) {
-    var status = 0;
-
-    return status;
-};
+//EtuanIM.prototype.addUser = function (socketId, socket) {
+//    var status = 0;
+//
+//    return status;
+//};
 /**
  * 注册用户信息到Users中对应的链接，并检查数据库是否注册该用户信息，
  * 没有则添加，有则更新信息。
+ * @param socket
  * @param socketId
  * @param appid
  * @param nickName
  * @param cb 参数 err,delUser
  */
-EtuanIM.prototype.upUser = function (socketId, appid, nickName, cb) {
+EtuanIM.prototype.addUser = function (socket, socketId, appid, nickName, cb) {
 
 };
 /**

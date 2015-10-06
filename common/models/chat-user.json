@@ -16,15 +16,10 @@
     },
     "created": {
       "type": "date"
-    },
-    "lastOT": {
-      "type": "date"
     }
   },
   "validations": [],
-  "relations": {
-
-  },
+  "relations": {},
   "acls": [],
   "methods": {}
 }

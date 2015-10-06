@@ -36,7 +36,11 @@
     "dataSource": "db",
     "public": true
   },
-  "Room": {
+  "ChatRoom": {
+    "dataSource": "db",
+    "public": true
+  },
+  "ChatGroup": {
     "dataSource": "db",
     "public": true
   }

@@ -1,45 +1,45 @@
 {
-  "name": "Room",
+  "name": "ChatRoom",
   "base": "PersistedModel",
   "idInjection": true,
   "options": {
     "validateUpsert": true
   },
   "properties": {
-    "to": {
-      "type": "string",
-      "required": true
+    "type": {
+      "type": "number",
+      "required": true,
+      "default": 0
     },
-    "toNickName":{
-      "type": "string",
-      "required": true
-    },
-    "from": {
-      "type": "string",
-      "required": true
-    },
-    "fromNickName": {
-      "type": "string",
-      "required": true
-    },
-    "msg": [{
-      "created": {
-        "type": "date",
-        "required": true
-      },
-      "msgType": {
-        "type": "string",
-        "required": true
-      },
-      "msgContent": {
-        "type": "string",
-        "required": true
-      }
-    }]
+    "msg": {
+      "type": [
+        {
+          "created": {
+            "type": "date",
+            "required": true
+          },
+          "msgType": {
+            "type": "string",
+            "required": true
+          },
+          "msgContent": {
+            "type": "string",
+            "required": true
+          }
+        }
+      ]
+    }
   },
   "validations": [],
   "relations": {
-
+    "chatGroups": {
+      "type": "embedsMany",
+      "model": "ChatGroup",
+      "option": {
+        "validate": true,
+        "autoId": true
+      }
+    }
   },
   "acls": [],
   "methods": {}
