@@ -1,6 +1,47 @@
 var app = angular.module('domo',[]);
+function Base (IM) {
+    this.IM = IM;
+}
+Base.prototype.login = function (args) {
+
+};
+
+Base.prototype.unread = function (args) {
+
+};
+Base.prototype.setRead = function (args) {
+
+};
+
+Base.prototype.recentContact = function (args){
+
+};
+
+Base.prototype.history = function (args){
+
+};
+
+Base.prototype.shield = function (args) {
+
+};
+function Chat (IM) {
+    this.IM = IM;
+}
+function EtuanIM (appid, nickName) {
+    this.appid = appid;
+    this.nickName = nickName;
+    var str = 'http://' + window.location.host + '/chat';
+    this.socket = io(str);
+    this.Base = new Base(this);
+    this.Chat = new Chat(this);
+}
 app.controller('domoCtrl', function ($scope) {
-    chat = new EtuanChat();
+
+    var chat = new EtuanIM('g','fdsd');
+    chat.Base.login({success: function () {
+
+    }});
+    return;
     $scope.msgs = [];
     $scope.linkman = {
         nickName : 'EtuanChat',
@@ -41,49 +82,68 @@ app.controller('domoCtrl', function ($scope) {
         $scope.linkman = linkman;
     }
 });
-function EtuanChat () {
-    var str = 'http://' + window.location.host + '/chat';
-    this.socket = io(str);
-    var that = this;
-    this.socket.once('init', function (status, friends, others) {
-        var data = {
-            status: status,
-            friends: friends,
-            others: others
-        };
-        that.linkmans = others;
-        that.__fire__('on_chat_init', data);
-    });
-    this.socket.once('cookieId', function (cookie) {
-        this.cookie = cookie;
-    });
-    this.socket.emit('sign_up', {appid:"1",nickName:"123"}, function (data) {
-        console.log(data);
-    });
-    this.socket.on('broadcast', function (status, friends, others) {
-        var data = {
-            status: status,
-            friends: friends,
-            others: others
-        };
-        that.linkmans = others;
-        that.__fire__('on_chat_init', data);
-    });
-    this.socket.on('private', function (data) {
-        that.__fire__('new_msg_res', data);
-    });
-    this.socket.emit('broadcast', 'sm');
-}
 
-/**
+//function EtuanIM (appid, nickName) {
+//    var str = 'http://' + window.location.host + '/chat';
+//    this.socket = io(str);
+//    var that = this;
+//    this.socket.once('init', function (status, friends, others) {
+//        var data = {
+//            status: status,
+//            friends: friends,
+//            others: others
+//        };
+//        that.linkmans = others;
+//        that.__fire__('on_chat_init', data);
+//    });
+//    this.socket.once('cookieId', function (cookie) {
+//        this.cookie = cookie;
+//    });
+//    this.socket.emit('sign_up', {appid:"1",nickName:"123"}, function (data) {
+//        console.log(data);
+//    });
+//    this.socket.on('broadcast', function (status, friends, others) {
+//        var data = {
+//            status: status,
+//            friends: friends,
+//            others: others
+//        };
+//        that.linkmans = others;
+//        that.__fire__('on_chat_init', data);
+//    });
+//    this.socket.on('private', function (data) {
+//        that.__fire__('new_msg_res', data);
+//    });
+//    this.socket.emit('broadcast', 'sm');
+//}
+/*
+function Base () {
+    //this.socket = socket;
+
+}
+function EtuanChat () {
+    this.name = 'EtuamChat';
+    var Base = new Base();
+    Base.login.call(this, this.name);
+}
+EtuanIM.prototype.Base = function (){
+
+    return new Base(this.socket);
+    /!*that: this.socket,
+    *!/
+};
+Base.prototype.login = function (args) {
+    console.log(this, args);
+};
+/!**
  * 发送消息
  * @param config Object
  * toAppId 接收者appId
  * appId   发送者appId
  * msg     消息内容
  * @return 100成功，101失败
- */
-EtuanChat.prototype.sendMsg = function (config) {
+ *!/
+EtuanIM.prototype.sendMsg = function (config) {
     var from = this.owner;
     var to = this.__findUser__(config.toAppId);
 
@@ -100,7 +160,7 @@ EtuanChat.prototype.sendMsg = function (config) {
     }
 }
 //100成功，101失败
-EtuanChat.prototype.login = function (nickName, appId, cb) {
+EtuanIM.prototype.login = function (nickName, appId, cb) {
     var that = this;
     var ajax = new XMLHttpRequest();
     ajax.onreadystatechange = function () {
@@ -124,7 +184,7 @@ EtuanChat.prototype.login = function (nickName, appId, cb) {
     ajax.setRequestHeader("Content-type","application/x-www-form-urlencoded");
     ajax.send('nickName='+ nickName + '&appId='+ appId + '&cookieId=' + that.socket.cookie);
 };
-EtuanChat.prototype.__findUser__ = function (appid) {
+EtuanIM.prototype.__findUser__ = function (appid) {
     var users = this.linkmans;
     for (var i = 0; i < users.length; i++ ) {
         if (users[i].appId === appid) {
@@ -134,7 +194,7 @@ EtuanChat.prototype.__findUser__ = function (appid) {
     return null;
 }
 //监听事件
-EtuanChat.prototype.on = function (eventName, fn) {
+EtuanIM.prototype.on = function (eventName, fn) {
     var bowerType = this.__bowerType__();
     if (bowerType === 'IE') {
         document.attachEvent(eventName, function (event) {
@@ -147,7 +207,7 @@ EtuanChat.prototype.on = function (eventName, fn) {
     }
 };
 //触发事件
-EtuanChat.prototype.__fire__ = function (eventName, message) {
+EtuanIM.prototype.__fire__ = function (eventName, message) {
     var bowerType = this.__bowerType__();
     if (bowerType === 'IE') {
         var event = document.createEventObject();
@@ -161,10 +221,10 @@ EtuanChat.prototype.__fire__ = function (eventName, message) {
     }
 };
 //判断浏览器类型
-EtuanChat.prototype.__bowerType__ = function () {
+EtuanIM.prototype.__bowerType__ = function () {
     if (document.all) {
         return 'IE';
     } else {
         return '!IE';
     }
-}
+};*/
