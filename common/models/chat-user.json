@@ -10,7 +10,7 @@
       "type": "string",
       "required": true
     },
-    "appId": {
+    "appid": {
       "type": "string",
       "required": true
     },

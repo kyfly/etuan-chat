@@ -3,7 +3,13 @@ function Base (IM) {
     this.IM = IM;
 }
 Base.prototype.login = function (args) {
-
+    this.IM.socket.emit(
+        'sign_up',{
+            appid: args.appid,
+            nickName: args.nickName
+        }, function (res){
+            args.success(res);
+        });
 };
 
 Base.prototype.unread = function (args) {
@@ -27,6 +33,50 @@ Base.prototype.shield = function (args) {
 function Chat (IM) {
     this.IM = IM;
 }
+Chat.prototype.on = function (eventName, fn) {
+    var bowerType = this.IM.__bowerType__();
+    if (bowerType === 'IE') {
+        document.attachEvent(eventName, function (event) {
+            fn(event.message);
+        });
+    } else {
+        document.addEventListener(eventName, function (event) {
+            fn(event.message);
+        });
+    }
+};
+Chat.prototype.sendMsg = function (args) {
+    var IM = this.IM;
+    args.to && args.msg && args.msgType && args.success && args.error?
+        IM.socket.emit('private_chat',
+            {
+                to: args.to,
+                form: IM.appid,
+                msgContent: args.msg,
+                msgType: args.msgType
+            }, function (res) {
+                args.success(res);
+            })
+        :function () {
+        args.error({status:400, msg: "参数不全"});
+    };
+};
+Chat.prototype.broadcast = function (args) {
+    var IM = this.IM;
+    args.msg && args.msgType && args.success && args.error?
+        IM.socket.emit('private_chat',
+            {
+                to: "ALL",
+                form: IM.appid,
+                msgContent: args.msg,
+                msgType: args.msgType
+            }, function (res) {
+                args.success(res);
+            })
+        :function () {
+        args.error({status: 400, msg: "参数不全"});
+    };
+};
 function EtuanIM (appid, nickName) {
     this.appid = appid;
     this.nickName = nickName;
@@ -34,38 +84,69 @@ function EtuanIM (appid, nickName) {
     this.socket = io(str);
     this.Base = new Base(this);
     this.Chat = new Chat(this);
+    this.listen();
 }
+EtuanIM.prototype.listen = function () {
+    var that = this;
+    var socket = this.socket;
+    socket.on('init', function (onlines, rooms, unreads) {
+        that.__fire__('init', {onlineUsers: onlines, rooms:rooms,unreadMsg: unreads});
+    });
+    socket.on('new_user_in', function (user) {
+        that.__fire__('new_user_in', user);
+    });
+    socket.on('new_msg_in', function (user) {
+        that.__fire__('new_user_in', user);
+    });
+    socket.on('have_user_out', function (user) {
+        that.__fire__('have_user_out', user);
+    });
+    socket.on('system_error', function (user) {
+        that.__fire__('system_error', user);
+    });
+};
 app.controller('domoCtrl', function ($scope) {
 
-    var chat = new EtuanIM('g','fdsd');
-    chat.Base.login({success: function () {
+    var IM = new EtuanIM('g','fdsd');
 
-    }});
-    return;
+    IM.Chat.on('init', function (users) {
+        $scope.$apply(function () {
+            $scope.others = users.onlineUsers;
+        });
+        console.log(users);
+    });
+    IM.Chat.on('new_msg_in', function () {
+
+    });
+    IM.Chat.on('new_user_in', function () {
+
+    });
+    IM.Chat.on('have_user_out', function () {
+
+    });
+    IM.Chat.on('system_error', function () {
+
+    });
+    IM.Chat.broadcast({msg: "some msg"}, function (res) {
+
+    });
     $scope.msgs = [];
     $scope.linkman = {
         nickName : 'EtuanChat',
         appId : null
     };
-    chat.on('on_login', function (event) {
-        console.log(event, 1);
-    });
-    chat.on('on_chat_init', function (message) {
-        $scope.$apply(function () {
-            $scope.others = message.others;
-        });
-    });
-    chat.on('new_msg_res', function (message) {
-        $scope.$apply(function () {
-            $scope.linkman = message.from;
-            $scope.msgs.push(message.msg);
-            console.log($scope.linkman);
-        });
-    });
     $scope.login = function () {
-        chat.login($scope.nickName, $scope.appId, function (res) {
-            console.log(res,2);
-        });
+        IM.Base.login(
+            {
+                appid: $scope.appId,
+                nickName: $scope.nickName,
+                success: function (res) {
+                    console.log(res);
+                },
+                error: function (res) {
+                    console.log(res);
+                }
+            });
     };
     $scope.sendMsg = function () {
         var config = {
@@ -116,33 +197,15 @@ app.controller('domoCtrl', function ($scope) {
 //    });
 //    this.socket.emit('broadcast', 'sm');
 //}
-/*
-function Base () {
-    //this.socket = socket;
 
-}
-function EtuanChat () {
-    this.name = 'EtuamChat';
-    var Base = new Base();
-    Base.login.call(this, this.name);
-}
-EtuanIM.prototype.Base = function (){
-
-    return new Base(this.socket);
-    /!*that: this.socket,
-    *!/
-};
-Base.prototype.login = function (args) {
-    console.log(this, args);
-};
-/!**
+/**
  * 发送消息
  * @param config Object
  * toAppId 接收者appId
  * appId   发送者appId
  * msg     消息内容
  * @return 100成功，101失败
- *!/
+ */
 EtuanIM.prototype.sendMsg = function (config) {
     var from = this.owner;
     var to = this.__findUser__(config.toAppId);
@@ -159,31 +222,7 @@ EtuanIM.prototype.sendMsg = function (config) {
         return 101;
     }
 }
-//100成功，101失败
-EtuanIM.prototype.login = function (nickName, appId, cb) {
-    var that = this;
-    var ajax = new XMLHttpRequest();
-    ajax.onreadystatechange = function () {
-        if (ajax.readyState === 4 && ajax.status === 200)
-        {
-            res = ajax.responseText;
-            res = JSON.parse(res);
-            if (res.id && res.status === 200) {
-                cb(100);
-            } else {
-                cb(101);
-            }
-        }
-    };
-    that.owner = {
-        nickName: nickName,
-        appId: appId,
-        cookieId: that.socket.cookie
-    };
-    ajax.open("POST","/api/ChatUsers",true);
-    ajax.setRequestHeader("Content-type","application/x-www-form-urlencoded");
-    ajax.send('nickName='+ nickName + '&appId='+ appId + '&cookieId=' + that.socket.cookie);
-};
+
 EtuanIM.prototype.__findUser__ = function (appid) {
     var users = this.linkmans;
     for (var i = 0; i < users.length; i++ ) {
@@ -227,4 +266,4 @@ EtuanIM.prototype.__bowerType__ = function () {
     } else {
         return '!IE';
     }
-};*/
+};
