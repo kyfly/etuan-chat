@@ -1,0 +1,26 @@
+{
+  "name": "ChatGroup",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "appid": {
+      "type": "string",
+      "required": true
+    },
+    "nickName": {
+      "type": "string",
+      "required": true
+    },
+    "OT": {
+      "type": "date",
+      "required": true
+    }
+  },
+  "validations": [],
+  "relations": {},
+  "acls": [],
+  "methods": {}
+}
