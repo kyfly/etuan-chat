@@ -188,10 +188,11 @@ EtuanIM.prototype.getNickName = function (appid, cb) {
  */
 EtuanIM.prototype.saveMsg = function (msg, cb) {
     var tosocket;
-    index = this.findUserByAppid(msg.to);
-    tosocket = index > -1 ? this.users[index]: 'NOTLINK';
+    var that = this;
+    index = that.findUserByAppid(msg.to);
+    tosocket = index > -1 ? that.users[index]: 'NOTLINK';
     if (msg.roomId) {
-        promise(this.roomModel,
+        promise(that.roomModel,
             'updateAll',
             {
                 id: msg.roomId
@@ -211,33 +212,36 @@ EtuanIM.prototype.saveMsg = function (msg, cb) {
                 cb(err);
             });
     } else {
-        var index = this.findUserByAppid(msg.form);
-        var formNickName = this.users[index].nickName;
+        var index = that.findUserByAppid(msg.from);
+        var formNickName = that.users[index].nickName;
         this.getNickName(msg.to, function (err, nickName) {
             if (err) {
                 cb (err);
             } else {
-                promise(this.roomModel,
+                promise(that.roomModel,
                     'create',
                     {},
                     {
-                        msg: {
+                        msg: [{
                             created: msg.createAt,
                             msgType: msg.msgType,
                             msgContent: msg.msgContent
-                        },
-                        chatGroups: [{
+                        }],
+                        _chatGroups: [{
                             appid: msg.to,
                             nickName: nickName,
-                            OT: new Date()
+                            OT: new Date(),
+                            id: 0
                         },{
-                            appid: msg.form,
+                            appid: msg.from,
                             nickName: formNickName,
-                            OT: new Date()
+                            OT: new Date(),
+                            id: 1
                         }]
                     })
                     .then(function (instance) {
                         msg.roomId = instance.id;
+                        msg.newRoom = 1;
                         cb(null, tosocket,msg);
                     }, function (err) {
                         cb(err);
@@ -276,13 +280,14 @@ EtuanIM.prototype.onlineUsers = function (appid) {
     return online;
 };
 EtuanIM.prototype.rooms = function (appid, cb) {
-    promise(this.roomModel, 'find', {where:{appid: appid, type: 0}}, {})
+    promise(this.roomModel, 'find', {where:{'_chatGroups.appid': appid, type: 0}}, {})
         .then(function (instance) {
             var rooms = [];
+
             for (var i = 0; i < instance.length; i++) {
-                for (var k = 0; k < instance[i].chatGroups; k++) {
-                    if (instance[i].chatGroups[k].appid !== appid) {
-                        rooms.push({roomId: instance[i].id, to: instance[i].chatGroups[k].appid});
+                for (var k = 0; k < instance[i]._chatGroups.length; k++) {
+                    if (instance[i]._chatGroups[k].appid !== appid) {
+                        rooms.push({roomId: instance[i].id, to: instance[i]._chatGroups[k].appid});
                     }
                 }
             }

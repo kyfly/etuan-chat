@@ -32,10 +32,10 @@
             <div style="height: 10px;width: 100%;text-align: center">
                 <h5 style="margin: 3px;border-bottom: 1px solid #ddd" ng-bind="linkman.nickName"></h5>
             </div>
-            <div style="height: 240px;width: 100%;text-align: right">
+            <div style="height: 240px;width: 100%;text-align: left">
                 <ul>
-                    <li ng-repeat="msg in msgs">
-                        {{msg}}
+                    <li ng-repeat="msg in msgs track by $index">
+                        {{msg.fromNickName +' ' + msg.createAt + " say " + msg.msgContent}}
                     </li>
                 </ul>
             </div>

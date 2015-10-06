@@ -3,6 +3,9 @@ function Base (IM) {
     this.IM = IM;
 }
 Base.prototype.login = function (args) {
+    this.IM.appid = args.appid;
+    this.IM.nickName = args.nickName;
+
     this.IM.socket.emit(
         'sign_up',{
             appid: args.appid,
@@ -47,19 +50,21 @@ Chat.prototype.on = function (eventName, fn) {
 };
 Chat.prototype.sendMsg = function (args) {
     var IM = this.IM;
-    args.to && args.msg && args.msgType && args.success && args.error?
+    if (args.to && args.msg  && args.success && args.error) {
         IM.socket.emit('private_chat',
             {
                 to: args.to,
-                form: IM.appid,
+                from: IM.appid,
+                fromNickName: IM.nickName,
+                roomId: IM.__findRoom__(args.to),
                 msgContent: args.msg,
-                msgType: args.msgType
+                msgType: args.msgType || 0
             }, function (res) {
                 args.success(res);
-            })
-        :function () {
+            });
+    } else {
         args.error({status:400, msg: "参数不全"});
-    };
+    }
 };
 Chat.prototype.broadcast = function (args) {
     var IM = this.IM;
@@ -90,13 +95,17 @@ EtuanIM.prototype.listen = function () {
     var that = this;
     var socket = this.socket;
     socket.on('init', function (onlines, rooms, unreads) {
+        that.rooms = rooms;
         that.__fire__('init', {onlineUsers: onlines, rooms:rooms,unreadMsg: unreads});
     });
     socket.on('new_user_in', function (user) {
         that.__fire__('new_user_in', user);
     });
-    socket.on('new_msg_in', function (user) {
-        that.__fire__('new_user_in', user);
+    socket.on('private_chat', function (msg) {
+        if (msg.newRoom === 1) {
+            that.__setRoom__(msg);
+        }
+        that.__fire__('new_msg_in', msg);
     });
     socket.on('have_user_out', function (user) {
         that.__fire__('have_user_out', user);
@@ -104,6 +113,18 @@ EtuanIM.prototype.listen = function () {
     socket.on('system_error', function (user) {
         that.__fire__('system_error', user);
     });
+};
+EtuanIM.prototype.__findRoom__ = function (toAppid) {
+    var roomId = null;
+    for (var i = 0; i < this.rooms.length; i++ ) {
+        if (this.rooms[i].to === toAppid) {
+            return this.rooms[i].roomId;
+        }
+    }
+    return roomId;
+};
+EtuanIM.prototype.__setRoom__ = function (msg) {
+    this.rooms.push({to: msg.from, roomId: msg.roomId});
 };
 app.controller('domoCtrl', function ($scope) {
 
@@ -115,8 +136,19 @@ app.controller('domoCtrl', function ($scope) {
         });
         console.log(users);
     });
-    IM.Chat.on('new_msg_in', function () {
-
+    IM.Chat.on('new_msg_in', function (msg) {
+        console.log(msg);
+        var msgs = window.localStorage[msg.from + '_from'];
+        if (msgs)
+            msgs = JSON.parse(msgs);
+        else
+            msgs = [];
+        msgs.push(msg);
+        $scope.$apply(function () {
+            $scope.msgs = msgs;
+        });
+        console.log(msgs);
+        window.localStorage[msg.from + '_from'] = JSON.stringify(msgs);
     });
     IM.Chat.on('new_user_in', function () {
 
@@ -150,16 +182,22 @@ app.controller('domoCtrl', function ($scope) {
     };
     $scope.sendMsg = function () {
         var config = {
-            toAppId: $scope.linkman.appId,
-            appid: $scope.appId,
-            msg: $scope.msg
+            to: $scope.linkman.appid,
+            msg: $scope.msg,
+            msgType: 0,
+            success: function (res) {
+                console.log(res);
+            },
+            error: function (res) {
+                console.log(res);
+            }
         };
-        chat.sendMsg(config);
+        IM.Chat.sendMsg(config);
     };
     $scope.changeUser = function () {
         var linkman = {};
         linkman.nickName = this.user.nickName;
-        linkman.appId = this.user.appId;
+        linkman.appid = this.user.appid;
         $scope.linkman = linkman;
     }
 });
