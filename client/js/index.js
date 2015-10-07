@@ -1,12 +1,12 @@
-var app = angular.module('domo',[]);
+var app = angular.module('domo', []);
 app.controller('domoCtrl', function ($scope) {
 
-    var IM = new EtuanIM('g','fdsd');
+    var IM = new EtuanIM('g', 'fdsd');
     IM.Chat.on('onlineusers', function (users) {
         $scope.$apply(function () {
             $scope.others = users;
         });
-        console.log('online',users);
+        console.log('online', users);
     });
     IM.Chat.on('init', function (users) {
         $scope.$apply(function () {
@@ -28,10 +28,10 @@ app.controller('domoCtrl', function ($scope) {
         window.localStorage[msg.from + '_from'] = JSON.stringify(msgs);
     });
     IM.Chat.on('new_user_in', function (user) {
-        console.log('in ',user);
+        console.log('in ', user);
     });
     IM.Chat.on('have_user_out', function (user) {
-        console.log('out ',user);
+        console.log('out ', user);
     });
     IM.Chat.on('system_error', function () {
 
@@ -41,8 +41,8 @@ app.controller('domoCtrl', function ($scope) {
     });
     $scope.msgs = [];
     $scope.linkman = {
-        nickName : 'EtuanChat',
-        appId : null
+        nickName: 'EtuanChat',
+        appId: null
     };
     $scope.login = function () {
         IM.Base.login(
