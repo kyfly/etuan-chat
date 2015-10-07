@@ -32,20 +32,21 @@ function EtuanChat(app, server) {
     io = io(server);
     io.of('/chat').on('connection', function (socket) {
         socket.on('sign_up', function (user, cb) {
-            IM.rooms(user.appid, function (err, roomlist) {
-                var online = IM.onlineUsers(user.appid);
-                socket.emit('init', online, roomlist, []);
-            });
-            IM.addUser(socket, socket.id, user.appid, user.nickName, function (err, oldUser) {
+            IM.addUser(socket, socket.id, user.appid, user.nickName, function (err, oldUser, newUser) {
                 if (err) {
                     cb({status:400, msg: "加入聊天系统失败"});
                 } else if (oldUser){
-
-                    io.sockets.emit('user_out', oldUser);
-                    cb({status:200, msg: "加入聊天系统成功"});
+                    socket.broadcast.emit('user_out', oldUser);
+                    socket.broadcast.emit('user_in', newUser);
+                    cb({status:200, msg: "加入聊天系统成功", user: newUser});
                 } else {
-                    cb({status:200, msg: "加入聊天系统成功"});
+                    socket.broadcast.emit('user_in', newUser);
+                    cb({status:200, msg: "加入聊天系统成功", user: newUser});
                 }
+            });
+            IM.rooms(user.appid, function (err, roomlist) {
+                var online = IM.onlineUsers(user.appid);
+                socket.emit('init', online, roomlist, []);
             });
         });
 
@@ -110,6 +111,10 @@ EtuanIM.prototype.addUser = function (socket, socketId, appid, nickName, cb) {
         appid: appid,
         nickName: nickName
     };
+    var newUser = {
+        appid: appid,
+        nickName: nickName
+    };
     var that = this;
     var id = null;
     promise(that.userModel, 'findOne', {where:{appid: appid}})
@@ -125,9 +130,11 @@ EtuanIM.prototype.addUser = function (socket, socketId, appid, nickName, cb) {
         })
         .then(function(data) {
             user.id = data.id || id;
+            newUser.id = data.id || id;
             var duser = that.distoryUser(appid);
             that.users.push(user);
-            cb(null, duser);
+
+            cb(null, duser, newUser);
         }, function (err) {
             cb(err);
         });
