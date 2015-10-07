@@ -5,6 +5,19 @@
     <meta charset="UTF-8">
     <title>EtuanIMDemo</title>
     <link rel="stylesheet" href="css/bootstrap.css">
+    <style>
+        .greenHead {
+            color: #008040;
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
+
+        .blueHead {
+            color: #0000FF;
+            margin-top: 0;
+            margin-bottom: 5px;
+        }
+    </style>
     <script src="/socket.io/socket.io.js"></script>
     <script src="/js/angular/angular.min.js"></script>
     <script src="/js/chat.js"></script>
@@ -49,6 +62,7 @@
         <input type="button" ng-click="recentContact()" value="最近联系人">
         <input type="button" ng-click="inshield()" value="屏蔽的用户">
         <input type="button" ng-click="setRead()" value="设为已读">
+    </div>
     <div class="well">
         <div>
             <div class="col-md-4">
@@ -58,7 +72,7 @@
                     </div>
                     <div class="panel-body" style="padding: 0">
                         <ul class="list-group" style="margin: 0">
-                            <li style="border-bottom: none;border-left: none;cursor: pointer;word-wrap:break-word;word-break:break-all;"
+                            <li style="border-left: none;cursor: pointer;word-wrap:break-word;word-break:break-all;"
                                 class="list-group-item" ng-repeat="user in others" ng-click="changeUser()">
                                 {{user.nickName}}
                             </li>
@@ -72,13 +86,14 @@
                         <h3 class="panel-title" ng-bind="linkman.nickName"></h3>
                     </div>
                     <div class="panel-body">
-                        <div style="padding: 0">
-                            <ul class="list-group" style="margin: 0">
-                                <li style="border-bottom: none;border-left: none;word-wrap:break-word;word-break:break-all;"
-                                    class="list-group-item" ng-repeat="msg in msgs track by $index">
-                                    {{msg.fromNickName +' ' + msg.createAt + " say " + msg.msgContent}}
-                                </li>
-                            </ul>
+                        <div class="list-group">
+                            <a style="word-wrap:break-word;word-break:break-all;"
+                               class="list-group-item" ng-repeat="msg in msgs track by $index">
+                                <h5 ng-class="{'greenHead':(msg.fromNickName == nickName), 'blueHead':!(msg.fromNickName == nickName)}">{{msg.fromNickName}}
+                                    <small>{{msg.createAt | date:"yyyy-MM-dd HH:mm"}}</small>
+                                </h5>
+                                <p class="list-group-item-text">{{msg.msgContent}}</p>
+                            </a>
                         </div>
                     </div>
                 </div>

@@ -1,6 +1,6 @@
 var app = angular.module('domo', []);
+var msgs = [];
 app.controller('domoCtrl', function ($scope) {
-
     var IM = new EtuanIM('g', 'fdsd');
     IM.Chat.on('onlineusers', function (users) {
         $scope.$apply(function () {
@@ -15,10 +15,10 @@ app.controller('domoCtrl', function ($scope) {
     });
     IM.Chat.on('new_msg_in', function (msg) {
         console.log(msg);
-        var msgs = window.localStorage[msg.from + '_from'];
-        if (msgs)
+        msgs = window.localStorage[msg.from + '_from'];
+        if (msgs){
             msgs = JSON.parse(msgs);
-        else
+        } else
             msgs = [];
         msgs.push(msg);
         $scope.$apply(function () {
@@ -64,12 +64,18 @@ app.controller('domoCtrl', function ($scope) {
             msgType: 0,
             success: function (res) {
                 console.log(res);
+                msgs.push(res.msg);
+                $scope.$apply(function () {
+                    $scope.msgs = msgs;
+                });
+                window.localStorage[res.msg.to + '_from'] = JSON.stringify(msgs);
             },
             error: function (res) {
                 console.log(res);
             }
         };
         IM.Chat.sendMsg(config);
+
     };
     $scope.changeUser = function () {
         var linkman = {};
