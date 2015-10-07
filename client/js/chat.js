@@ -7,6 +7,7 @@ function EtuanIM (appid, nickName) {
     this.Chat = new Chat(this);
     this.listen();
     this.authorized = false;
+    this.shields = [];
 }
 EtuanIM.prototype.listen = function () {
     var that = this;
@@ -14,9 +15,10 @@ EtuanIM.prototype.listen = function () {
     /**
      * 用户进入系统后初始化
      */
-    socket.on('init', function (onlines, rooms, unreads) {
+    socket.on('init', function (onlines, rooms, unreads ,users) {
         that.rooms = rooms;
         that.onlines = onlines;
+        that.users = users;
         that.__fire__('init', {onlineUsers: onlines, rooms:rooms,unreadMsg: unreads});
     });
     /**
@@ -33,6 +35,9 @@ EtuanIM.prototype.listen = function () {
     socket.on('private_chat', function (msg) {
         if (!that.authorized)
             return;
+        if (that.isShield(msg.form)) {
+            return;
+        }
         if (msg.newRoom === 1) {
             that.__setRoom__(msg);
         }
@@ -54,6 +59,14 @@ EtuanIM.prototype.listen = function () {
         that.__fire__('system_error', user);
     });
 };
+EtuanIM.prototype.isShield = function (appid) {
+    for (var i = 0; i < this.shields.length; i++ ) {
+        if (this.shields[i].appid === appid) {
+            return true;
+        }
+    }
+    return false;
+};
 /**
  * 在线用户管理
  * @param act
@@ -64,6 +77,9 @@ EtuanIM.prototype.listenUsers = function (act, user) {
         return;
     if (act === 'add') {
         this.onlines.push(user);
+        if (user.isNew === 1) {
+            this.users.push(user);
+        }
         this.__fire__('new_user_in', user);
     } else {
         this.deleteUser(user);
@@ -94,24 +110,16 @@ EtuanIM.prototype.__setRoom__ = function (msg) {
     this.rooms.push({to: msg.from, roomId: msg.roomId});
 };
 
-EtuanIM.prototype.__findUser__ = function (appid) {
-    var users = this.linkmans;
-    for (var i = 0; i < users.length; i++ ) {
-        if (users[i].appId === appid) {
-            return users[i];
-        }
-    }
-    return null;
-};
 //触发事件
 EtuanIM.prototype.__fire__ = function (eventName, message) {
     var bowerType = this.__bowerType__();
+    var event;
     if (bowerType === 'IE') {
-        var event = document.createEventObject();
+        event = document.createEventObject();
         event.message = message;
         document.fireEvent(eventName, event);
     } else {
-        var event = document.createEvent('HTMLEvents');
+        event = document.createEvent('HTMLEvents');
         event.initEvent(eventName, true, true);
         event.message = message;
         document.dispatchEvent(event);
@@ -142,24 +150,107 @@ Base.prototype.login = function (args) {
             args.success(res);
         });
 };
-
+/**
+ *
+ * @param args
+ */
 Base.prototype.unread = function (args) {
-
+    var IM = this.IM;
+    IM.socket.emit('unread', {appid: IM.appid}, function (res) {
+        if (res.status === 200) {
+            args.success(res);
+        } else {
+            args.error(res);
+        }
+    });
 };
+/**
+ * 设置与某用户的聊天为已读
+ * @param args
+ */
 Base.prototype.setRead = function (args) {
-
+    var IM = this.IM;
+    var roomId = IM.__findRoom__(args.to);
+    if (!roomId) {
+        args.success({status: 200});
+        return;
+    }
+    IM.socket.emit('setRead', {from: IM.appid, roomId: roomId}, function (res) {
+        if (res.status === 200) {
+            args.success(res);
+        } else {
+            args.error(res);
+        }
+    });
 };
-
-Base.prototype.recentContact = function (args){
-
+/**
+ *
+ * @param appid
+ * @returns {*|string}
+ */
+Base.prototype.getNickNameByAppid = function (appid) {
+    for (var i = 0; i < this.users.length; i++ ) {
+        if (this.users[i].appid === appid) {
+            return this.users[i].nickName;
+        }
+    }
 };
-
+/**
+ *
+ * @returns {*|Array}
+ */
+Base.prototype.recentContact = function (){
+    var IM = this.IM;
+    return IM.rooms;
+};
+/**
+ *
+ * @param args
+ */
 Base.prototype.history = function (args){
-
+    var IM = this.IM;
+    var roomId = IM.__findRoom__(args.to);
+    if (!roomId) {
+        args.success([]);
+    }
+    IM.socket.emit('history', {roomId: roomId}, function (res) {
+        if (res.status === 200) {
+            args.success(res);
+        } else {
+            args.error({msg: res.msg});
+        }
+    });
 };
-
+/**
+ * 暂时屏蔽用户
+ * @param args
+ */
 Base.prototype.shield = function (args) {
-
+    var IM = this.IM;
+    IM.shields.push({appid: args.to, nickName: args.nickName});
+    args.success({msg: "暂时屏蔽成功"});
+};
+/**
+ * 解除屏蔽状态
+ * @param args
+ */
+Base.prototype.unshield = function (args) {
+    var IM = this.IM;
+    for (var i = 0; i < IM.shields.length; i++ ) {
+        if (IM.shields[i].appid === args.to) {
+            IM.shields.splice(i, 1);
+            args.success({msg: "解除屏蔽成功"});
+            return;
+        }
+    }
+    args.error({msg: "用户未被屏蔽"});
+};
+/**
+ * 获取被屏蔽的用户
+ * @returns {Array}
+ */
+Base.prototype.inshield = function () {
+    return this.IM.shields;
 };
 function Chat (IM) {
     this.IM = IM;
@@ -188,6 +279,10 @@ Chat.prototype.sendMsg = function (args) {
                 msgContent: args.msg,
                 msgType: args.msgType || 0
             }, function (res) {
+                if (res.msg.newRoom === 1) {
+                    res.msg.from = res.msg.to;
+                    IM.__setRoom__(res.msg);
+                }
                 args.success(res);
             });
     } else {

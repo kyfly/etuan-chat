@@ -10,10 +10,6 @@
       "type": "string",
       "required": true
     },
-    "nickName": {
-      "type": "string",
-      "required": true
-    },
     "OT": {
       "type": "date",
       "required": true

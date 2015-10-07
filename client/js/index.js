@@ -76,5 +76,74 @@ app.controller('domoCtrl', function ($scope) {
         linkman.nickName = this.user.nickName;
         linkman.appid = this.user.appid;
         $scope.linkman = linkman;
-    }
+    };
+
+    $scope.history = function () {
+        var config = {
+            to: $scope.linkman.appid,
+            success: function (res) {
+                console.log(res);
+            },
+            error: function (res) {
+                console.log(res);
+            }
+        };
+        IM.Base.history(config);
+    };
+    $scope.unread = function () {
+        var config = {
+            success: function (res) {
+                console.log(res);
+            },
+            error: function (res) {
+                console.log(res);
+            }
+        };
+        IM.Base.unread(config);
+    };
+    $scope.setRead = function () {
+        var config = {
+            to: $scope.linkman.appid,
+            success: function (res) {
+                console.log(res);
+            },
+            error: function (res) {
+                console.log(res);
+            }
+        };
+        IM.Base.setRead(config);
+    };
+    $scope.shield = function () {
+        var config = {
+            to: $scope.linkman.appid,
+            nickName: $scope.linkman.nickName,
+            success: function (res) {
+                console.log(res);
+            },
+            error: function (res) {
+                console.log(res);
+            }
+        };
+        IM.Base.shield(config);
+    };
+    $scope.unshield = function () {
+        var config = {
+            to: $scope.linkman.appid,
+            success: function (res) {
+                console.log(res);
+            },
+            error: function (res) {
+                console.log(res);
+            }
+        };
+        IM.Base.unshield(config);
+    };
+    $scope.recentContact = function () {
+        var users = IM.Base.recentContact();
+        console.log(users);
+    };
+    $scope.inshield = function () {
+        var users = IM.Base.inshield();
+        console.log(users);
+    };
 });

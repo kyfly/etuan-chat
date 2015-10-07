@@ -44,7 +44,14 @@
     </div>
     <div style="height: 100px;background-color: #fff;padding: 10px;">
         <input type="text" ng-model="msg">
-        <input type="button" id="send" ng-click="sendMsg()" value="send">
+        <input type="button" ng-click="sendMsg()" value="发送">
+        <input type="button" ng-click="history()" value="历史记录">
+        <input type="button" ng-click="unread()" value="未读消息">
+        <input type="button" ng-click="shiled()" value="屏蔽">
+        <input type="button" ng-click="unshiled()" value="解除屏蔽">
+        <input type="button" ng-click="recentContact()" value="最近联系人">
+        <input type="button" ng-click="inshield()" value="屏蔽的用户">
+        <input type="button" ng-click="setRead()" value="设为已读">
     </div>
 </div>
 </body>
