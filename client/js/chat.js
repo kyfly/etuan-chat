@@ -19,7 +19,8 @@ EtuanIM.prototype.listen = function () {
         that.rooms = rooms;
         that.onlines = onlines;
         that.users = users;
-        that.__fire__('init', {onlineUsers: onlines, rooms:rooms,unreadMsg: unreads});
+        that.__fire__('init', unreads);
+        that.__fire__('onlineusers', that.onlines);
     });
     /**
      * 新用户加入
@@ -35,7 +36,7 @@ EtuanIM.prototype.listen = function () {
     socket.on('private_chat', function (msg) {
         if (!that.authorized)
             return;
-        if (that.isShield(msg.form)) {
+        if (that.isShield(msg.from)) {
             return;
         }
         if (msg.newRoom === 1) {
@@ -54,9 +55,6 @@ EtuanIM.prototype.listen = function () {
         } else {
             that.listenUsers('del', user);
         }
-    });
-    socket.on('system_error', function (user) {
-        that.__fire__('system_error', user);
     });
 };
 EtuanIM.prototype.isShield = function (appid) {
@@ -139,8 +137,7 @@ function Base (IM) {
 Base.prototype.login = function (args) {
     var IM = this.IM;
     IM.appid = args.appid;
-    IM.nickName = args.nickName;
-
+    IM.nickName = args.nickName,
     IM.socket.emit(
         'sign_up',{
             appid: args.appid,
@@ -158,9 +155,9 @@ Base.prototype.unread = function (args) {
     var IM = this.IM;
     IM.socket.emit('unread', {appid: IM.appid}, function (res) {
         if (res.status === 200) {
-            args.success(res);
+            args.success(res.msg);
         } else {
-            args.error(res);
+            args.error(res.msg);
         }
     });
 };
@@ -172,16 +169,10 @@ Base.prototype.setRead = function (args) {
     var IM = this.IM;
     var roomId = IM.__findRoom__(args.to);
     if (!roomId) {
-        args.success({status: 200});
+        args.error({status: 400, msg: "参数不全"});
         return;
     }
-    IM.socket.emit('setRead', {from: IM.appid, roomId: roomId}, function (res) {
-        if (res.status === 200) {
-            args.success(res);
-        } else {
-            args.error(res);
-        }
-    });
+    IM.socket.emit('setRead', {from: IM.appid, roomId: roomId});
 };
 /**
  *
@@ -189,9 +180,19 @@ Base.prototype.setRead = function (args) {
  * @returns {*|string}
  */
 Base.prototype.getNickNameByAppid = function (appid) {
-    for (var i = 0; i < this.users.length; i++ ) {
-        if (this.users[i].appid === appid) {
-            return this.users[i].nickName;
+    for (var i = 0; i < this.IM.users.length; i++ ) {
+        if (this.IM.users[i].appid === appid) {
+            return this.IM.users[i].nickName;
+        }
+    }
+};
+Base.prototype.getUserByRoomId = function (roomId) {
+    for (var i = 0; i < this.IM.rooms.length; i++ ) {
+        if (this.IM.rooms[i].roomId === roomId) {
+            return {
+                nickName : this.getNickNameByAppid(this.IM.rooms[i].to),
+                appid : this.IM.rooms[i].to
+            }
         }
     }
 };
@@ -215,7 +216,7 @@ Base.prototype.history = function (args){
     }
     IM.socket.emit('history', {roomId: roomId}, function (res) {
         if (res.status === 200) {
-            args.success(res);
+            args.success(res.msgs);
         } else {
             args.error({msg: res.msg});
         }
@@ -227,8 +228,8 @@ Base.prototype.history = function (args){
  */
 Base.prototype.shield = function (args) {
     var IM = this.IM;
-    IM.shields.push({appid: args.to, nickName: args.nickName});
-    args.success({msg: "暂时屏蔽成功"});
+
+    IM.shields.push({appid: args.appid, nickName: args.nickName});
 };
 /**
  * 解除屏蔽状态
@@ -251,6 +252,20 @@ Base.prototype.unshield = function (args) {
  */
 Base.prototype.inshield = function () {
     return this.IM.shields;
+};
+/**
+ * 进入对话窗口，获取对方状态
+ * @param toAppid
+ */
+Base.prototype.inDialog = function (toAppid) {
+    return this.IM.isShield(toAppid);
+};
+/**
+ * 退出对话窗口
+ *
+ */
+Base.prototype.outDialog = function (toAppid) {
+    this.setRead(toAppid);
 };
 function Chat (IM) {
     this.IM = IM;
@@ -283,10 +298,11 @@ Chat.prototype.sendMsg = function (args) {
                     res.msg.from = res.msg.to;
                     IM.__setRoom__(res.msg);
                 }
-                args.success(res);
+                args.success(res.msg);
             });
+        IM.Base.setRead(args);
     } else {
-        args.error({status:400, msg: "参数不全"});
+        args.error({msg: "参数不全"});
     }
 };
 Chat.prototype.broadcast = function (args) {
@@ -299,10 +315,10 @@ Chat.prototype.broadcast = function (args) {
                 msgContent: args.msg,
                 msgType: args.msgType
             }, function (res) {
-                args.success(res);
+                args.success(res.msg);
             })
         :function () {
-        args.error({status: 400, msg: "参数不全"});
+        args.error({msg: "参数不全"});
     };
 };
 

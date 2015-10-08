@@ -57,30 +57,41 @@
         <input type="button" ng-click="sendMsg()" value="发送">
         <input type="button" ng-click="history()" value="历史记录">
         <input type="button" ng-click="unread()" value="未读消息">
-        <input type="button" ng-click="shiled()" value="屏蔽">
-        <input type="button" ng-click="unshiled()" value="解除屏蔽">
+        <input type="button" ng-click="shield()" value="屏蔽">
+        <input type="button" ng-click="unshield()" value="解除屏蔽">
         <input type="button" ng-click="recentContact()" value="最近联系人">
         <input type="button" ng-click="inshield()" value="屏蔽的用户">
         <input type="button" ng-click="setRead()" value="设为已读">
     </div>
     <div class="well">
         <div>
-            <div class="col-md-4">
-                <div class="panel panel-default" style="overflow-x: auto;height: 305px">
-                    <div class="panel-heading">
-                        <h3 class="panel-title">聊天室成员</h3>
-                    </div>
-                    <div class="panel-body" style="padding: 0">
-                        <ul class="list-group" style="margin: 0">
-                            <li style="border-left: none;cursor: pointer;word-wrap:break-word;word-break:break-all;"
-                                class="list-group-item" ng-repeat="user in others" ng-click="changeUser()">
-                                {{user.nickName}}
-                            </li>
-                        </ul>
-                    </div>
+            <div class="panel panel-default col-xs-6 col-sm-4 col-md-2" style="overflow-x: auto;height: 305px">
+                <div class="panel-heading">
+                    <h3 class="panel-title">聊天室成员</h3>
+                </div>
+                <div class="panel-body" style="padding: 0">
+                    <ul class="list-group" style="margin: 0">
+                        <li style="border-left: none;cursor: pointer;word-wrap:break-word;word-break:break-all;"
+                            class="list-group-item" ng-repeat="user in others" ng-click="changeUser()">
+                            {{user.nickName}}
+                        </li>
+                    </ul>
                 </div>
             </div>
-            <div class="col-md-8">
+            <div class="panel panel-default col-xs-6 col-sm-4 col-md-2" style="overflow-x: auto;height: 305px">
+                <div class="panel-heading">
+                    <h3 class="panel-title">未读消息</h3>
+                </div>
+                <div class="panel-body" style="padding: 0">
+                    <ul class="list-group" style="margin: 0">
+                        <li style="border-left: none;cursor: pointer;word-wrap:break-word;word-break:break-all;"
+                            class="list-group-item" ng-repeat="user in unreads" ng-click="readMsg()">
+                            {{user.nickName + '有' + user.msgNo + '条消息'}}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="col-xs-12 col-sm-10 col-md-8">
                 <div class="panel panel-default" style="height: 250px;overflow-x: auto;">
                     <div class="panel-heading">
                         <h3 class="panel-title" ng-bind="linkman.nickName"></h3>

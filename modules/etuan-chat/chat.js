@@ -48,8 +48,10 @@ function EtuanChat(app, server) {
             });
             IM.rooms(user.appid, function (err, roomlist) {
                 var online = IM.onlineUsers(user.appid);
-                IM.findUser(function (user) {
-                    socket.emit('init', online, roomlist, [],  user);
+                IM.findUser(function (users) {
+                    IM.findUnreadMsg(user.appid, function (err, unreads) {
+                        socket.emit('init', online, roomlist, unreads,  users);
+                    });
                 });
             });
         });
@@ -61,6 +63,7 @@ function EtuanChat(app, server) {
                 cb ({status: 200, msg: "消息发送成功"});
             } else {
                 IM.saveMsg(msg, function (err, tosocket, msg) {
+                    console.log(msg);
                     if (err) {
                         cb({status: 500, msg: "系统错误"});
                     } else if (tosocket !== 'NOTLINK') {
@@ -75,24 +78,24 @@ function EtuanChat(app, server) {
 
         socket.on('unread', function (user, cb) {
             IM.findUnreadMsg(user.appid, function (err, msgs) {
-                cb({status:200, msg:msgs});
+                if (!err) {
+                    cb({status:200, msg:msgs});
+                } else {
+                    cb({status:400, msg: '系统错误'});
+                }
             });
         });
 
-        socket.on('setRead', function (users, cb) {
+        socket.on('setRead', function (users) {
             IM.setMsgRead(users.from, users.roomId, function (err, data) {
-                if (err) {
-                    cb({status: 400, msg:err.message});
-                } else {
-                    cb({status: 200});
-                }
+
             });
         });
 
         socket.on('history', function (room, cb) {
             IM.getHistoryMsg(room.roomId, function (err, msgs) {
                 if (err) {
-                    cb({status: 400, msg:err.message});
+                    cb({status: 400, msg: '系统错误'});
                 } else {
                     cb({status: 200, msgs: msgs});
                 }
@@ -277,7 +280,6 @@ EtuanIM.prototype.rooms = function (appid, cb) {
     )
         .then(function (instance) {
             var rooms = [];
-
             for (var i = 0; i < instance.length; i++) {
                 for (var k = 0; k < instance[i]._chatGroups.length; k++) {
                     if (instance[i]._chatGroups[k].appid !== appid) {
@@ -319,7 +321,7 @@ EtuanIM.prototype.findUnreadMsg = function (appid, cb) {
             Q.all(fns)
                 .spread(function () {
                     for (var key in arguments) {
-                        if (arguments[key]) {
+                        if (arguments[key].msg) {
                             msgs.push(arguments[key]);
                         }
                     }
@@ -336,6 +338,7 @@ EtuanIM.prototype.findUnreadMsg = function (appid, cb) {
 
 EtuanIM.prototype.findOwerOT = function (id, ot) {
     var deferred = Q.defer();
+    var msgs = [];
     promise(this.roomModel,
         'findOne',
         {
@@ -353,11 +356,21 @@ EtuanIM.prototype.findOwerOT = function (id, ot) {
         {}
     )
         .then(function (data) {
+            if (data) {
+                for (var i = 0; i < data.msg.length; i++) {
+                    if (data.msg[i].created > ot) {
+                        msgs.push(data.msg[i]);
+                    }
+                }
+                data.msg = msgs;
+            } else {
+                data = {};
+            }
             deferred.resolve(data);
         }, function (err) {
             deferred.reject(err);
         });
-    return deferred.promise;//必须返回这个
+    return deferred.promise;
 };
 EtuanIM.prototype.setMsgRead = function (from, roomId, cb) {
     promise(this.roomModel, 'findOne', {where: {id: roomId}}, {})
