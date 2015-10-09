@@ -96,7 +96,7 @@
                             <a style="word-wrap:break-word;word-break:break-all;border: none"
                                class="list-group-item" ng-repeat="msg in msgs track by $index">
                                 <h5 ng-class="{'greenHead':(msg.fromNickName == nickName), 'blueHead':!(msg.fromNickName == nickName)}">
-                                    {{msg.fromNickName}}
+                                    {{msg.fromNickName||msg.from}}
                                     <small>{{msg.createAt+msg.created | date:"yyyy-MM-dd HH:mm"}}</small>
                                 </h5>
                                 <p class="list-group-item-text">{{msg.msgContent}}</p>
