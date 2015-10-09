@@ -57,13 +57,12 @@ function EtuanChat(app, server) {
         });
 
         socket.on('private_chat', function (msg, cb) {
-            msg.createAt = new Date();
+            msg.created = new Date();
             if (msg.to === 'ALL') {
                 socket.broadcast.emit('private_chat', msg);
                 cb ({status: 200, msg: "消息发送成功"});
             } else {
                 IM.saveMsg(msg, function (err, tosocket, msg) {
-                    console.log(msg);
                     if (err) {
                         cb({status: 500, msg: "系统错误"});
                     } else if (tosocket !== 'NOTLINK') {
@@ -202,7 +201,7 @@ EtuanIM.prototype.saveMsg = function (msg, cb) {
             {
                 '$push':{
                     msg:{
-                        created: msg.createAt,
+                        created: msg.created,
                         msgType: msg.msgType,
                         msgContent: msg.msgContent,
                         from: msg.from,
@@ -221,7 +220,7 @@ EtuanIM.prototype.saveMsg = function (msg, cb) {
             {},
             {
                 msg: [{
-                    created: msg.createAt,
+                    created: msg.created,
                     msgType: msg.msgType,
                     msgContent: msg.msgContent,
                     from: msg.from,

@@ -212,7 +212,7 @@ Base.prototype.history = function (args){
     var IM = this.IM;
     var roomId = IM.__findRoom__(args.to);
     if (!roomId) {
-        args.success([]);
+        args.success({msg: null});
     }
     IM.socket.emit('history', {roomId: roomId}, function (res) {
         if (res.status === 200) {
@@ -245,6 +245,18 @@ Base.prototype.unshield = function (args) {
         }
     }
     args.error({msg: "用户未被屏蔽"});
+};
+Base.prototype.readImage = function (e, cb) {
+    var pic = e.files[0];
+    var reader = new FileReader();
+    if (!reader) {
+        cb(null);
+        return;
+    }
+    reader.onload = function(e) {
+        cb({content: e.target.result});
+    };
+    reader.readAsDataURL(pic);
 };
 /**
  * 获取被屏蔽的用户

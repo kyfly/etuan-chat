@@ -136,6 +136,30 @@ app.controller('domoCtrl', function ($scope) {
         readMsg (this.user.appid);
         $scope.setRead();
     };
+    $scope.sendImage = function () {
+        var e = document.getElementById('file');
+        IM.Base.readImage(e, function (pic) {
+            if (!pic) {
+                alert('浏览器不支持');
+            } else {
+                var config = {
+                    to: $scope.linkman.appid,
+                    msg: pic.content,
+                    msgType: 1,
+                    success: function (msg) {
+                        $scope.$apply(function () {
+                            $scope.msgs = [msg];
+                        });
+                    },
+                    error: function (res) {
+                        console.log(res);
+                    }
+                };
+                IM.Chat.sendMsg(config);
+            }
+        });
+
+    };
     $scope.unread = function () {
         var config = {
             success: function (res) {

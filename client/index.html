@@ -17,6 +17,14 @@
             margin-top: 0;
             margin-bottom: 5px;
         }
+        #file {
+            opacity:0;/*设置此控件透明度为零，即完全透明*/
+            filter:alpha(opacity=0);/*设置此控件透明度为零，即完全透明针对IE*/
+            font-size:100px;
+            position:absolute;/*绝对定位，相对于 .input */
+            top:0;
+            right:0;
+        }
     </style>
     <script src="/socket.io/socket.io.js"></script>
     <script src="/js/angular/angular.min.js"></script>
@@ -27,6 +35,7 @@
       style="font-family: 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', tahoma, arial, simsun, '宋体';">
 <h1>EtuanIMDemo</h1>
 <hr>
+
 
 <div class="mainBox">
     <div class="well" style="margin-top: 100px">
@@ -52,6 +61,7 @@
             </div>
         </form>
     </div>
+
     <div class="well">
         <div>
             <div class="panel panel-default col-xs-6 col-sm-4 col-md-2"
@@ -83,23 +93,32 @@
                 </div>
             </div>
             <div class="col-xs-12 col-sm-10 col-md-8">
-                <div class="panel panel-default" style="height: 250px;overflow-x: auto;">
+                <div class="panel panel-default" style="height: 250px;">
                     <div class="panel-heading">
                         <h3 style="display: inline;margin-right: 30px" class="panel-title"
                             ng-bind="linkman.nickName"></h3>
-                        <button class="btn btn-danger" type="button" ng-click="shiled()" value="屏蔽">屏蔽</button>
-                        <button class="btn-info btn" type="button" ng-click="unshiled()" value="解除屏蔽">解除屏蔽</button>
+
+                        <a href="javascript:void(0)" class="btn btn-danger">文件
+                            <input  ng-model="pic" onchange="angular.element(this).scope().sendImage()" id="file" type="file" accept="image/*">
+                        </a>
+                        <button class="btn btn-danger" type="button" ng-click="shield()" value="屏蔽">屏蔽</button>
+                        <button class="btn-info btn" type="button" ng-click="unshield()" value="解除屏蔽">解除屏蔽</button>
                         <button class="btn-warning btn" type="button" ng-click="history()" value="历史记录">历史记录</button>
                     </div>
-                    <div class="panel-body">
+                    <div class="panel-body" style="height: 185px;overflow: auto;">
+
                         <div class="list-group">
                             <a style="word-wrap:break-word;word-break:break-all;border: none"
                                class="list-group-item" ng-repeat="msg in msgs track by $index">
                                 <h5 ng-class="{'greenHead':(msg.fromNickName == nickName), 'blueHead':!(msg.fromNickName == nickName)}">
                                     {{msg.fromNickName||msg.from}}
-                                    <small>{{msg.createAt+msg.created | date:"yyyy-MM-dd HH:mm"}}</small>
+                                    <small>{{msg.created | date:"yyyy-MM-dd HH:mm"}}</small>
                                 </h5>
-                                <p class="list-group-item-text">{{msg.msgContent}}</p>
+
+                                <p class="list-group-item-text" ng-show="msg.msgType === 0">{{msg.msgContent}}</p>
+                                <p class="list-group-item-text" ng-show="msg.msgType === 1">
+                                    <img ng-src="{{msg.msgContent}}" style="width: 70%;">
+                                </p>
                             </a>
                         </div>
                     </div>
