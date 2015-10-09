@@ -96,7 +96,6 @@ app.controller('domoCtrl', function ($scope) {
             }
         };
         IM.Chat.sendMsg(config);
-
     };
     $scope.changeUser = function () {
         var linkman = {};
@@ -118,6 +117,9 @@ app.controller('domoCtrl', function ($scope) {
             to: $scope.linkman.appid,
             success: function (res) {
                 console.log(res);
+                $scope.$apply(function () {
+                    $scope.msgs = res.msg;
+                });
             },
             error: function (res) {
                 console.log(res);
