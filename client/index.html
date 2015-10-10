@@ -29,7 +29,7 @@
             left:0px;
             bottom: 0;
             width: 100%;
-            overflow: auto;
+            overflow: hidden;
         }
     </style>
     <script src="/socket.io/socket.io.js"></script>
@@ -105,7 +105,7 @@
                             ng-bind="linkman.nickName"></h3>
 
                         <a href="javascript:void(0)" class="btn btn-danger file">文件
-                            <input  ng-model="pic" onchange="angular.element(this).scope().sendImage()" id="file" type="file" accept="image/*">
+                            <input ng-model="pic" onchange="angular.element(this).scope().sendImage()" id="file" type="file" accept="image/*">
                         </a>
                         <button class="btn btn-danger" type="button" ng-click="shield()" value="屏蔽">屏蔽</button>
                         <button class="btn-info btn" type="button" ng-click="unshield()" value="解除屏蔽">解除屏蔽</button>
@@ -121,8 +121,8 @@
                                     <small>{{msg.created | date:"yyyy-MM-dd HH:mm"}}</small>
                                 </h5>
 
-                                <p class="list-group-item-text" ng-if="msg.msgType === 0">{{msg.msgContent}}</p>
-                                <p class="list-group-item-text" ng-if="msg.msgType === 1">
+                                <p class="list-group-item-text" ng-if="msg.msgType == 0">{{msg.msgContent}}</p>
+                                <p class="list-group-item-text" ng-if="msg.msgType == 1">
                                     <img ng-src="{{msg.msgContent}}" style="width: 70%;">
                                 </p>
                             </a>
