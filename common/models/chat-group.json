@@ -10,6 +10,11 @@
       "type": "string",
       "required": true
     },
+    "relation": {
+      "type": "number",
+      "required": true,
+      "default": 0
+    },
     "OT": {
       "type": "date",
       "required": true

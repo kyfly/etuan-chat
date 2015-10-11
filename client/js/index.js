@@ -207,4 +207,24 @@ app.controller('domoCtrl', function ($scope) {
         var users = IM.Base.inshield();
         console.log(users);
     };
+    $scope.addfriend = function () {
+        to = $scope.linkman.appid;
+        IM.Base.addFriend({
+            to: to,
+            success: function() {},
+            error: function() {}
+        });
+    };
+    $scope.delfriend = function () {
+        to = $scope.linkman.appid;
+        IM.Base.delFriend({
+            to: to,
+            success: function() {},
+            error: function() {}
+        });
+    };
+    $scope.getfriends = function () {
+        var user = IM.getFriends();
+        console.log(user);
+    };
 });

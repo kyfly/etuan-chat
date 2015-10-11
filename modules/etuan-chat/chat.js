@@ -100,10 +100,28 @@ function EtuanChat(app, server) {
                 }
             });
         });
+        socket.on('add_friend', function (roomId, to, cb) {
+            IM.addFriend(roomId, to, function (err, data) {
+                if (err) {
+                    cb({status: 400});
+                } else {
+                    cb({status: 200});
+                }
+            });
+        });
 
+        socket.on('del_friend', function (roomId, to, cb) {
+            IM.delFriend(roomId, to, function (err, data) {
+                if (err) {
+                    cb({status: 400});
+                } else {
+                    cb({status: 200});
+                }
+            });
+        });
         socket.on('disconnect', function () {
             var user = IM.deleteUser(socket.id);
-            io.sockets.emit('user_out', user);
+            socket.broadcast.emit('user_out', user);
         });
     });
 }
@@ -247,8 +265,13 @@ EtuanIM.prototype.saveMsg = function (msg, cb) {
 };
 
 EtuanIM.prototype.deleteUser = function (socketId) {
-    var user = 0;
-
+    var user = null;
+    for (var i = 0; i < this.users.length; i++) {
+        if (this.users[i].socketId === socketId) {
+            this.users[i].socket = undefined;
+            return this.users[i];
+        }
+    }
     return user;
 };
 
@@ -267,6 +290,28 @@ EtuanIM.prototype.onlineUsers = function (appid) {
     return online;
 };
 
+EtuanIM.prototype.addFriend = function (roomId, appid) {
+    promise(this.roomModel, 'findOne', {where: {id: roomId}}, {})
+        .then(function (instance) {
+            for (var k = 0; k < instance[i]._chatGroups.length; k++) {
+                if (instance[i]._chatGroups[k].appid === appid) {
+                    instance[i]._chatGroups[k].relation = 1;
+                    instance.save({}, cb);
+                }
+            }
+        });
+};
+EtuanIM.prototype.delFriend = function (roomId, appid) {
+    promise(this.roomModel, 'findOne', {where: {id: roomId}}, {})
+        .then(function (instance) {
+            for (var k = 0; k < instance[i]._chatGroups.length; k++) {
+                if (instance[i]._chatGroups[k].appid === appid) {
+                    instance[i]._chatGroups[k].relation = 0;
+                    instance.save({}, cb);
+                }
+            }
+        });
+};
 EtuanIM.prototype.rooms = function (appid, cb) {
     promise(this.roomModel, 'find',
         {
@@ -284,6 +329,7 @@ EtuanIM.prototype.rooms = function (appid, cb) {
                     if (instance[i]._chatGroups[k].appid !== appid) {
                         rooms.push({
                             roomId: instance[i].id,
+                            relation:instance[i]._chatGroups[k].relation,
                             to: instance[i]._chatGroups[k].appid
                         });
                     }

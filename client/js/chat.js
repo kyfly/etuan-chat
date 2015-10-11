@@ -19,6 +19,7 @@ EtuanIM.prototype.listen = function () {
         that.rooms = rooms;
         that.onlines = onlines;
         that.users = users;
+        that.friend = that.getFriends();
         that.__fire__('init', unreads);
         that.__fire__('onlineusers', that.onlines);
     });
@@ -56,6 +57,25 @@ EtuanIM.prototype.listen = function () {
             that.listenUsers('del', user);
         }
     });
+};
+EtuanIM.prototype.getFriends = function () {
+    var friends = [];
+    for (var i = 0; i < this.rooms.length; i++ ) {
+        if (this.rooms[i].relation === 1) {
+            friends.push(this.rooms[i]);
+        }
+    }
+    return friends;
+};
+EtuanIM.prototype.friendAct = function (act, to) {
+    for (var i = 0; i < this.rooms.length; i++ ) {
+        if (this.rooms[i].appid === to) {
+            if (act === 'add')
+                this.rooms[i].relation = 1;
+            else
+                this.rooms[i].relation = 0;
+        }
+    }
 };
 EtuanIM.prototype.isShield = function (appid) {
     for (var i = 0; i < this.shields.length; i++ ) {
@@ -204,6 +224,9 @@ Base.prototype.recentContact = function (){
     var IM = this.IM;
     return IM.rooms;
 };
+Base.prototype.getFriends = function () {
+    return this.IM.getFriends();
+};
 /**
  *
  * @param args
@@ -279,6 +302,41 @@ Base.prototype.inDialog = function (toAppid) {
 Base.prototype.outDialog = function (toAppid) {
     this.setRead(toAppid);
 };
+/**
+ *
+ * @param args
+ */
+Base.prototype.addFriend= function (args) {
+    this.__friend__(args, 'add_friend');
+};
+/**
+ *
+ * @param args
+ */
+Base.prototype.delFriend= function (args) {
+    this.__friend__(args, 'del_feiend');
+};
+Base.prototype.__friend__ = function (args, act) {
+    var IM = this.IM;
+    var roomId = this.IM.__findRoom__(args.to);
+    IM.socket.emit(act, roomId, args.to, function (res) {
+        if (res.status === 200) {
+            if (act === 'add_friend') {
+                IM.friendAct('add', args.to);
+            } else {
+                IM.friendAct('del', args.to);
+            }
+            args.success();
+        } else {
+            args.success();
+        }
+    });
+};
+/**
+ *
+ * @param IM
+ * @constructor
+ */
 function Chat (IM) {
     this.IM = IM;
 }
