@@ -17,13 +17,19 @@
             margin-top: 0;
             margin-bottom: 5px;
         }
+        .file{
+            position: relative;
+        }
         #file {
             opacity:0;/*设置此控件透明度为零，即完全透明*/
             filter:alpha(opacity=0);/*设置此控件透明度为零，即完全透明针对IE*/
-            font-size:100px;
+            font-size:12px;
             position:absolute;/*绝对定位，相对于 .input */
-            top:0;
-            right:0;
+            top:0px;
+            left:0px;
+            bottom: 0;
+            width: 100%;
+            overflow: hidden;
         }
     </style>
     <script src="/socket.io/socket.io.js"></script>
@@ -99,8 +105,8 @@
                         <h3 style="display: inline;margin-right: 30px" class="panel-title"
                             ng-bind="linkman.nickName"></h3>
 
-                        <a href="javascript:void(0)" class="btn btn-danger">文件
-                            <input  ng-model="pic" onchange="angular.element(this).scope().sendImage()" id="file" type="file" accept="image/*">
+                        <a href="javascript:void(0)" class="btn btn-danger file">文件
+                            <input ng-model="pic" onchange="angular.element(this).scope().sendImage()" id="file" type="file" accept="image/*">
                         </a>
                         <button class="btn btn-danger" type="button" ng-click="shield()" value="屏蔽">屏蔽</button>
                         <button class="btn-info btn" type="button" ng-click="unshield()" value="解除屏蔽">解除屏蔽</button>
@@ -117,9 +123,8 @@
                                     {{msg.fromNickName||msg.from}}
                                     <small>{{msg.created | date:"yyyy-MM-dd HH:mm"}}</small>
                                 </h5>
-
-                                <p class="list-group-item-text" ng-if="msg.msgType === 0">{{msg.msgContent}}</p>
-                                <p class="list-group-item-text" ng-if="msg.msgType === 1">
+                                <p class="list-group-item-text" ng-if="msg.msgType == 0">{{msg.msgContent}}</p>
+                                <p class="list-group-item-text" ng-if="msg.msgType == 1">
                                     <img ng-src="{{msg.msgContent}}" style="width: 70%;">
                                 </p>
                             </a>

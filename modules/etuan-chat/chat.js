@@ -290,23 +290,23 @@ EtuanIM.prototype.onlineUsers = function (appid) {
     return online;
 };
 
-EtuanIM.prototype.addFriend = function (roomId, appid) {
+EtuanIM.prototype.addFriend = function (roomId, appid, cb) {
     promise(this.roomModel, 'findOne', {where: {id: roomId}}, {})
         .then(function (instance) {
-            for (var k = 0; k < instance[i]._chatGroups.length; k++) {
-                if (instance[i]._chatGroups[k].appid === appid) {
-                    instance[i]._chatGroups[k].relation = 1;
+            for (var k = 0; k < instance._chatGroups.length; k++) {
+                if (instance._chatGroups[k].appid === appid) {
+                    instance._chatGroups[k].relation = 1;
                     instance.save({}, cb);
                 }
             }
         });
 };
-EtuanIM.prototype.delFriend = function (roomId, appid) {
+EtuanIM.prototype.delFriend = function (roomId, appid, cb) {
     promise(this.roomModel, 'findOne', {where: {id: roomId}}, {})
         .then(function (instance) {
-            for (var k = 0; k < instance[i]._chatGroups.length; k++) {
-                if (instance[i]._chatGroups[k].appid === appid) {
-                    instance[i]._chatGroups[k].relation = 0;
+            for (var k = 0; k < instance._chatGroups.length; k++) {
+                if (instance._chatGroups[k].appid === appid) {
+                    instance._chatGroups[k].relation = 0;
                     instance.save({}, cb);
                 }
             }

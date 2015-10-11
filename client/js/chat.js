@@ -60,16 +60,19 @@ EtuanIM.prototype.listen = function () {
 };
 EtuanIM.prototype.getFriends = function () {
     var friends = [];
+    var user = {};
     for (var i = 0; i < this.rooms.length; i++ ) {
         if (this.rooms[i].relation === 1) {
-            friends.push(this.rooms[i]);
+            user.appid = this.rooms[i].to;
+            user.nickName = this.Base.getNickNameByAppid(this.rooms[i].to);
+            friends.push(user);
         }
     }
     return friends;
 };
 EtuanIM.prototype.friendAct = function (act, to) {
     for (var i = 0; i < this.rooms.length; i++ ) {
-        if (this.rooms[i].appid === to) {
+        if (this.rooms[i].to === to) {
             if (act === 'add')
                 this.rooms[i].relation = 1;
             else
@@ -225,6 +228,7 @@ Base.prototype.recentContact = function (){
     return IM.rooms;
 };
 Base.prototype.getFriends = function () {
+
     return this.IM.getFriends();
 };
 /**
@@ -314,11 +318,14 @@ Base.prototype.addFriend= function (args) {
  * @param args
  */
 Base.prototype.delFriend= function (args) {
-    this.__friend__(args, 'del_feiend');
+    this.__friend__(args, 'del_friend');
 };
 Base.prototype.__friend__ = function (args, act) {
     var IM = this.IM;
     var roomId = this.IM.__findRoom__(args.to);
+    if (roomId) {
+        args.error({msg: "先和他打个招呼吧"});
+    }
     IM.socket.emit(act, roomId, args.to, function (res) {
         if (res.status === 200) {
             if (act === 'add_friend') {
