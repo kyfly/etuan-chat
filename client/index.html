@@ -41,7 +41,7 @@
       style="font-family: 'Hiragino Sans GB', 'Microsoft YaHei', '微软雅黑', tahoma, arial, simsun, '宋体';">
 <h1>EtuanIMDemo</h1>
 <hr>
-
+<input type="file" id="audio" onchange="angular.element(this).scope().sendAudio()">
 
 <div class="mainBox">
     <div class="well" style="margin-top: 100px">
@@ -127,6 +127,10 @@
                                 <p class="list-group-item-text" ng-if="msg.msgType == 1">
                                     <img ng-src="{{msg.msgContent}}" style="width: 70%;">
                                 </p>
+                                <p class="list-group-item-text" ng-if="msg.msgType == 2">
+                                    <audio ng-src="{{msg.msgContent}}" controls="controls"></audio>
+                                </p>
+                                
                             </a>
                         </div>
                     </div>

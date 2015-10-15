@@ -20,6 +20,17 @@
   },
   "validations": [],
   "relations": {},
-  "acls": [],
+  "acls": [{
+      "accessType": "READ",
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "DENY"
+    },
+    {
+      "principalType": "ROLE",
+      "principalId": "$everyone",
+      "permission": "ALLOW",
+      "property": "find"
+    }],
   "methods": {}
 }

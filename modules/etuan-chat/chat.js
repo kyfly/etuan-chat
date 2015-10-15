@@ -1,5 +1,16 @@
 var io = require('socket.io');
+var fs = require('fs');
 var Q = require('q');
+function randomString(len) {
+  len = len || 32;
+  var $chars = 'ABCDEFGHJoOLl9gqVvUuI1KMNPQRSTWXYZabcdefhijkmnprstwxyz2345678';
+  var maxPos = $chars.length;
+  var pwd = '';
+  for (i = 0; i < len; i++) {
+    pwd += $chars.charAt(Math.floor(Math.random() * maxPos));
+  }
+  return pwd;
+}
 function promise (model, method,query, data) {
     var deferred = Q.defer();
     function callback (err, data) {
@@ -57,21 +68,36 @@ function EtuanChat(app, server) {
         });
 
         socket.on('private_chat', function (msg, cb) {
-            msg.created = new Date();
-            if (msg.to === 'ALL') {
-                socket.broadcast.emit('private_chat', msg);
-                cb ({status: 200, msg: "消息发送成功"});
-            } else {
-                IM.saveMsg(msg, function (err, tosocket, msg) {
+            if (msg.msgType === 2) {
+                var fileName = randomString(8) + new Date().getTime() + randomString(7);
+                fs.writeFile('../client/audio/' + fileName, msg.msgContent, function (err) {
                     if (err) {
-                        cb({status: 500, msg: "系统错误"});
-                    } else if (tosocket !== 'NOTLINK') {
-                        tosocket.socket.emit('private_chat', msg);
-                        cb({status: 200, msg: msg});
+                        cb ({status: 500, msg: "系统错误"});
                     } else {
-                        cb({status: 200, msg: msg});
+                        msg.msgContent = '/audio/' + fileName;
+                        chat(msg);
                     }
                 });
+            } else {
+                chat (msg);
+            }
+            function chat () {
+                msg.created = new Date();
+                if (msg.to === 'ALL') {
+                    socket.broadcast.emit('private_chat', msg);
+                    cb ({status: 200, msg: "消息发送成功"});
+                } else {
+                    IM.saveMsg(msg, function (err, tosocket, msg) {
+                        if (err) {
+                            cb({status: 500, msg: "系统错误"});
+                        } else if (tosocket !== 'NOTLINK') {
+                            tosocket.socket.emit('private_chat', msg);
+                            cb({status: 200, msg: msg});
+                        } else {
+                            cb({status: 200, msg: msg});
+                        }
+                    });
+                }
             }
         });
 

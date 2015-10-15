@@ -160,6 +160,24 @@ app.controller('domoCtrl', function ($scope) {
         });
 
     };
+    $scope.sendAudio = function () {
+        var e = document.getElementById('audio');
+        var file = e.files[0];
+        var config = {
+                to: $scope.linkman.appid,
+                msg: file,
+                msgType: 2,
+                success: function (msg) {
+                    $scope.$apply(function () {
+                        $scope.msgs = [msg];
+                    });
+                },
+                error: function (res) {
+                    console.log(res);
+                }
+            };
+            IM.Chat.sendMsg(config);
+    }
     $scope.unread = function () {
         var config = {
             success: function (res) {
@@ -227,4 +245,5 @@ app.controller('domoCtrl', function ($scope) {
         var user = IM.getFriends();
         console.log(user);
     };
+
 });
